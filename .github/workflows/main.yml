@@ -26,11 +26,13 @@ jobs:
 
       - name: Build APK
         run: |
-          # The permissions here are CRITICAL for the Share button to work
-          echo y | flet build apk . \
+          # We use --android-permissions for specific system-level access
+          # We use --yes to auto-accept licenses
+          flet build apk . \
             --project "AttendancePro" \
             --org "com.mrauniyarr.attendance" \
-            --permissions "INTERNET,WRITE_EXTERNAL_STORAGE,READ_EXTERNAL_STORAGE"
+            --android-permissions "android.permission.INTERNET" "android.permission.WRITE_EXTERNAL_STORAGE" "android.permission.READ_EXTERNAL_STORAGE" \
+            --yes
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
