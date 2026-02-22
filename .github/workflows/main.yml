@@ -27,7 +27,7 @@ jobs:
 
       - name: Build APK
         run: |
-          # Individual flags are the most stable way to avoid CLI parsing errors
+          # Individual flags prevent the CLI from crashing on comma-separated lists
           flet build apk . \
             --project "AttendancePro" \
             --org "com.mrauniyarr.attendance" \
