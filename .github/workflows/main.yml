@@ -25,15 +25,16 @@ jobs:
           channel: 'stable'
           cache: true
 
+      - name: Accept Android Licenses
+        run: yes | sdkmanager --licenses || true
+
       - name: Build APK
         run: |
-          # Individual flags prevent the CLI from crashing on comma-separated lists
+          # We remove the permissions flag entirely. 
+          # Flet includes INTERNET by default, and sharing works without the storage flags.
           flet build apk . \
             --project "AttendancePro" \
             --org "com.mrauniyarr.attendance" \
-            --android-permissions INTERNET \
-            --android-permissions WRITE_EXTERNAL_STORAGE \
-            --android-permissions READ_EXTERNAL_STORAGE \
             --yes
 
       - name: Upload APK Artifact
