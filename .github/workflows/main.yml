@@ -26,12 +26,12 @@ jobs:
 
       - name: Build APK
         run: |
-          # We use --android-permissions for specific system-level access
-          # We use --yes to auto-accept licenses
+          # We use a single string with commas. 
+          # This is the most compatible format for Flet's manifest generator.
           flet build apk . \
             --project "AttendancePro" \
             --org "com.mrauniyarr.attendance" \
-            --android-permissions "android.permission.INTERNET" "android.permission.WRITE_EXTERNAL_STORAGE" "android.permission.READ_EXTERNAL_STORAGE" \
+            --android-permissions "INTERNET,WRITE_EXTERNAL_STORAGE,READ_EXTERNAL_STORAGE" \
             --yes
 
       - name: Upload APK Artifact
