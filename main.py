@@ -203,6 +203,46 @@ async def main(page: ft.Page):  # ← MUST be async
             )
         page.update()
 
+        # --- RESET ALL DATA LOGIC ---
+
+    async def handle_reset_confirmed(e):
+        confirm_dialog.open = False
+        if os.path.exists(EXCEL_FILE):
+            try:
+                os.remove(EXCEL_FILE)
+                update_present_count()  # This resets the counter to 0
+                page.snack_bar = ft.SnackBar(
+                    ft.Text("Database Deleted!"), bgcolor="red", open=True
+                )
+            except Exception as ex:
+                page.snack_bar = ft.SnackBar(ft.Text(f"Error: {ex}"), open=True)
+        page.update()
+
+    confirm_dialog = ft.AlertDialog(
+        modal=True,
+        title=ft.Text("Confirm Reset"),
+        content=ft.Text(
+            "This will permanently delete the Excel file and all attendance data."
+        ),
+        actions=[
+            ft.TextButton(
+                "Yes, Delete",
+                on_click=handle_reset_confirmed,
+            ),
+            ft.TextButton(
+                "Cancel",
+                on_click=lambda _: (
+                    setattr(confirm_dialog, "open", False) or page.update()
+                ),
+            ),
+        ],
+    )
+    page.overlay.append(confirm_dialog)
+
+    def show_reset_dialog(e):
+        confirm_dialog.open = True
+        page.update()
+
     # --- UI LAYOUT (only button changed) ---
     def keypad_btn(val):
         return ft.FilledButton(
@@ -219,11 +259,20 @@ async def main(page: ft.Page):  # ← MUST be async
         [
             ft.Text("SETUP", size=20, weight="bold"),
             selected_class,
+            ft.Container(height=20),
             ft.FilledButton(
                 "SHARE / EXCEL",
                 icon=ft.Icons.SHARE,
                 on_click=handle_export,  # ← now async
                 width=300,
+            ),
+            ft.Container(height=20),
+            ft.FilledButton(
+                "RESET ALL DATA",
+                icon=ft.Icons.DELETE_FOREVER,
+                on_click=show_reset_dialog,
+                width=300,
+                bgcolor="red700",
             ),
             present_count_text,
         ],
@@ -265,7 +314,7 @@ async def main(page: ft.Page):  # ← MUST be async
                         bgcolor="green",
                     ),
                     ft.FilledButton(
-                        "REMOVE",
+                        "Remove",
                         on_click=lambda _: modify_attendance("remove"),
                         width=140,
                         bgcolor="red",
