@@ -15,7 +15,7 @@ def get_db_path():
 
 async def main(page: ft.Page):  # ← MUST be async
     page.title = "Attendance System (Universal)"
-    page.theme_mode = ft.ThemeMode.LIGHT
+    page.theme_mode = ft.ThemeMode.DARK
     page.window_width = 380
     page.window_height = 800
     page.horizontal_alignment = ft.CrossAxisAlignment.CENTER
@@ -33,18 +33,19 @@ async def main(page: ft.Page):  # ← MUST be async
         text_align=ft.TextAlign.CENTER,
         width=250,
         text_size=30,
-        color="blue",
+        # color="blue",
         border_radius=15,
-        bgcolor=ft.Colors.BLUE_50,
+        border_color="red",
     )
     present_count_text = ft.Text(
-        "Total Present: 0", size=20, weight="bold", color="green700"
+        "Total Present: 0", size=14, weight="bold", color="green700"
     )
 
     selected_class = ft.Dropdown(
         label="Select Class",
         width=300,
         value="UG_1",
+        border_color="red",
         options=[
             ft.dropdown.Option("UG_1"),
             ft.dropdown.Option("UG_2"),
@@ -54,12 +55,37 @@ async def main(page: ft.Page):  # ← MUST be async
         ],
     )
 
+    # 1. Initialize the variable first
     date_display = ft.TextField(
         label="Selected Date",
         value=datetime.now().strftime("%d-%m-%Y"),
         read_only=True,
-        width=250,
+        width=300,
+        suffix_icon=ft.Icons.CALENDAR_MONTH,
+        border_color="red",
     )
+
+    # 2. Define the functions that use that variable
+    async def handle_date_change(e):
+        nonlocal date_display  # <--- This is the magic line
+        date_display.value = date_picker.value.strftime("%d-%m-%Y")
+        update_present_count()
+        page.update()
+
+    def open_date_picker(e):
+        date_picker.open = True
+        page.update()
+
+    # 3. Assign the function to the on_click now that it's defined
+    date_display.on_click = open_date_picker
+
+    # 4. Create the Picker
+    date_picker = ft.DatePicker(
+        on_change=handle_date_change,
+        first_date=datetime(2024, 1, 1),
+        last_date=datetime(2030, 12, 31),
+    )
+    page.overlay.append(date_picker)
 
     # --- CORE LOGIC (update_present_count & modify_attendance unchanged) ---
     def update_present_count(e=None):
@@ -170,8 +196,7 @@ async def main(page: ft.Page):  # ← MUST be async
         try:
             if page.platform in (ft.PagePlatform.WINDOWS, ft.PagePlatform.LINUX):
                 dest = os.path.join(
-                    os.path.expanduser("\~"),
-                    "Downloads",
+                    os.path.expanduser("~"),
                     f"Attendance_Export_{datetime.now().strftime('%Y%m%d_%H%M')}.xlsx",
                 )
                 shutil.copy2(EXCEL_FILE, dest)
@@ -255,26 +280,79 @@ async def main(page: ft.Page):  # ← MUST be async
             ),
         )
 
+    # 2. Define the logic functions
+    async def handle_date_change(e):
+        # Now this can find date_display because it's defined above
+        date_display.value = date_picker.value.strftime("%d-%m-%Y")
+        update_present_count()
+        page.update()
+
+    def open_date_picker(e):
+        date_picker.open = True
+        page.update()
+
+    # 3. Define the actual Picker
+    date_picker = ft.DatePicker(
+        on_change=handle_date_change,
+        first_date=datetime(2024, 1, 1),
+        last_date=datetime(2030, 12, 31),
+    )
+    page.overlay.append(date_picker)
+
     setup_view = ft.Column(
         [
-            ft.Text("SETUP", size=20, weight="bold"),
+            ft.Text("Configration:", size=20, weight="bold", color="blue"),
+            ft.Container(height=10),
+            date_display,  # <--- MAKE SURE THIS LINE IS HERE
+            ft.Container(height=15),
             selected_class,
-            ft.Container(height=20),
+            ft.Container(height=15),
             ft.FilledButton(
-                "SHARE / EXCEL",
+                "Share_Excel",
                 icon=ft.Icons.SHARE,
-                on_click=handle_export,  # ← now async
+                on_click=handle_export,
                 width=300,
             ),
-            ft.Container(height=20),
+            ft.Container(height=15),
             ft.FilledButton(
-                "RESET ALL DATA",
+                "Reset_All",
                 icon=ft.Icons.DELETE_FOREVER,
                 on_click=show_reset_dialog,
                 width=300,
-                bgcolor="red700",
+                bgcolor="blue",
             ),
             present_count_text,
+            # Developer
+            ft.Divider(height=40, thickness=1),
+            ft.Container(
+                content=ft.Column(
+                    [
+                        # ft.Text(
+                        #     "Developer Information",
+                        #     size=16,
+                        #     weight="bold",
+                        #     color="blue_grey_700",
+                        # ),
+                        ft.Text(
+                            "Developer: Dr Manish kumar Gupta", size=12, weight="w500"
+                        ),
+                        ft.Text("Asst. Professor,Faculty of Commerce", size=10),
+                        ft.Text(
+                            "SMM Town PG College, Ballia",
+                            size=10,
+                            italic=True,
+                            color="w500",
+                        ),
+                    ],
+                    spacing=5,
+                    horizontal_alignment="center",
+                ),
+                padding=20,
+                border=ft.border.all(1, ft.Colors.BLUE_GREY_100),
+                border_radius=15,
+                width=300,
+            ),
+            ft.Text("Version 1.0.0", size=4, color="grey400"),
         ],
         horizontal_alignment="center",
     )
@@ -308,7 +386,7 @@ async def main(page: ft.Page):  # ← MUST be async
             ft.Row(
                 [
                     ft.FilledButton(
-                        "SAVE",
+                        "Save",
                         on_click=lambda _: modify_attendance("mark"),
                         width=140,
                         bgcolor="green",
